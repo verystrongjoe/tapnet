@@ -20,7 +20,6 @@ python train.py --dataset FaceDetection --dilation 20 --kernels 4,1,1 --filters 
 python train.py --dataset MotorImagery --dilation 200 --filters 64,64,32 --lr 1e-4
 python train.py --dataset DuckDuckGeese --lr 1e-3
 python train.py --dataset EthanolConcentration  --rp_param 3,1 --dilation 100 --filters 64,64,64 --lr 1e-4
-python train.py --dataset BasicMotion lr 1e-4
 python train.py --dataset Epilepsy --wd 1e-2 --lr 1e-6 
 python train.py --dataset UWaveGestureLibrary --lr 1e-4
 python train.py --dataset SelfRegulationSCP1 --lr 1e-7 --dilation 50
