@@ -37,7 +37,6 @@ def load_raw_ts(path, dataset, tensor_format=True):
     labels = np.concatenate((y_train, y_test), axis=0)
     nclass = int(np.amax(labels)) + 1
 
-
     train_size = y_train.shape[0]
 
     total_size = labels.shape[0]
@@ -72,7 +71,6 @@ def accuracy(output, labels):
     accuracy_score = (sklearn.metrics.accuracy_score(labels, preds))
 
     return accuracy_score
-
 
 
 def euclidean_dist(x, y):

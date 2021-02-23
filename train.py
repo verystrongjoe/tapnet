@@ -11,7 +11,9 @@ from models import TapNet
 from utils import *
 import torch.nn as nn
 import torch.nn.functional as F
-
+import wandb
+import numpy as np
+from tsaug.visualization import plot
 
 parser = argparse.ArgumentParser()
 
@@ -39,7 +41,7 @@ parser.add_argument('--stop_thres', type=float, default=1e-9,
 
 # Model parameters
 
-
+# todo : use_rp - random projection, rp_params ,dilation 파라메터 파악 
 parser.add_argument('--use_cnn', type=boolean_string, default=True,
                     help='whether to use CNN for feature extraction. Default:False')
 parser.add_argument('--use_lstm', type=boolean_string, default=True,
@@ -96,9 +98,10 @@ model_type = "TapNet"
 
 if model_type == "TapNet":
 
+    # todo : 각 변수 값 확인
     features, labels, idx_train, idx_val, idx_test, nclass = load_raw_ts(args.data_path, dataset=args.dataset)
 
-
+    # todo : rp_params 처음 값 음수면 별도 처리하는 듯?
     # update random permutation parameter
     if args.rp_params[0] < 0:
         dim = features.shape[1]
@@ -109,7 +112,8 @@ if model_type == "TapNet":
     
     args.rp_params = [int(l) for l in args.rp_params]
     print("rp_params:", args.rp_params)
-
+    
+    # todo : dilation parameter라는 의미 파악
     # update dilation parameter
     if args.dilation == -1:
         args.dilation = math.floor(features.shape[2] / 64)
@@ -179,6 +183,14 @@ def train():
               'acc_val: {:.4f}'.format(acc_val.item()),
               'time: {:.4f}s'.format(time.time() - t))
 
+        wandb.log({
+            "Epoch": epoch + 1,
+            "loss_train": loss_train.item(),
+            "acc_train": acc_train.item(),
+            "loss_val": loss_val.item(),
+            "acc_val" : acc_val.item(),
+        })
+
         if acc_val.item() > test_best_possible:
             test_best_possible = acc_val.item()
         if best_so_far > loss_train.item():
@@ -201,6 +213,14 @@ def test():
 
 # Train model
 t_total = time.time()
+
+
+# wandb 설정
+wandb.login()
+wandb.init(project='tapnet-ukjo')
+wandb.config.update(args)
+wandb.watch(model, log="all")
+
 train()
 print("Optimization Finished!")
 print("Total time elapsed: {:.4f}s".format(time.time() - t_total))
