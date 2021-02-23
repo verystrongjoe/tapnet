@@ -1,6 +1,7 @@
 *.whl
 data/
 wandb/
+plot/
 .idea/
 __pycache__/
 
