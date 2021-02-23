@@ -175,11 +175,14 @@ for dataset_name in datasets:
 
     dba_iters = 5
     limit_N = False
+    
+    import os
+    os.makedirs("syntheticdata", exist_ok=True)
 
-    pickle.dump(synthetic_x_train, open("../syntheticdata/%s_softdtw_synthetic_x_train_%d_%d_%s.pkl" % (
+    pickle.dump(synthetic_x_train, open("syntheticdata/%s_softdtw_synthetic_x_train_%d_%d_%s.pkl" % (
     dataset_name, num_synthetic_ts, dba_iters, str(limit_N)), 'wb'))
 
-    pickle.dump(synthetic_y_train, open("../syntheticdata/%s_softdtw_synthetic_y_train_%d_%d_%s.pkl" % (
+    pickle.dump(synthetic_y_train, open("syntheticdata/%s_softdtw_synthetic_y_train_%d_%d_%s.pkl" % (
     dataset_name, num_synthetic_ts, dba_iters, str(limit_N)), 'wb'))
 
     print("Time (s): %f" % (time.process_time() - start))
