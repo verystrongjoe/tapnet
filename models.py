@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from utils import euclidean_dist, normalize, output_conv_size, dump_embedding
+from utils.utils import euclidean_dist, normalize, output_conv_size, dump_embedding
 import numpy as np
 
 class TapNet(nn.Module):
@@ -60,7 +60,6 @@ class TapNet(nn.Module):
             
             if self.use_rp:
                 fc_input = self.rp_group * filters[2] + self.lstm_dim
-
 
         # Representation mapping function
         layers = [fc_input] + layers
@@ -151,7 +150,6 @@ class TapNet(nn.Module):
                 x = x_lstm
             elif self.use_cnn:
                 x = x_conv
-            #
 
         # linear mapping to low-dimensional space
         x = self.mapping(x)

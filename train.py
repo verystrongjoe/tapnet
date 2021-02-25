@@ -8,12 +8,11 @@ import argparse
 
 import torch.optim as optim
 from models import TapNet
-from utils import *
+from utils.utils import *
 import torch.nn as nn
 import torch.nn.functional as F
 import wandb
 import numpy as np
-from tsaug.visualization import plot
 
 parser = argparse.ArgumentParser()
 
@@ -22,6 +21,8 @@ parser.add_argument('--data_path', type=str, default="./data/",
                     help='the path of data.')
 parser.add_argument('--dataset', type=str, default="NATOPS", #NATOPS
                     help='time series dataset. Options: See the datasets list')
+
+parser.add_argument('--modeltype', type=str, default="tapnet", help='model type. Default : tapnet')
 
 # cuda settings
 parser.add_argument('--no-cuda', action='store_true', default=False,
@@ -40,8 +41,7 @@ parser.add_argument('--stop_thres', type=float, default=1e-9,
                          'between epoches are less than the threshold, the training will be stopped. Default:1e-9')
 
 # Model parameters
-
-# todo : use_rp - random projection, rp_params ,dilation 파라메터 파악 
+# todo : use_rp - random projection, rp_params ,dilation 파라메터 파악
 parser.add_argument('--use_cnn', type=boolean_string, default=True,
                     help='whether to use CNN for feature extraction. Default:False')
 parser.add_argument('--use_lstm', type=boolean_string, default=True,
@@ -93,14 +93,18 @@ for attr, value in sorted(args.__dict__.items()):
 
 
 print("Loading dataset", args.dataset, "...")
+
 # Model and optimizer
-model_type = "TapNet" 
+# todo : 각 변수 값 확인
+features, labels, idx_train, idx_val, idx_test, nclass = load_raw_ts(args.data_path, dataset=args.dataset)
+model_type = args.modeltype
+nfeat = features.shape[1]
+len_ts = features.shape[2]
+layers = args.layers
+nclass = nclass
 
-if model_type == "TapNet":
 
-    # todo : 각 변수 값 확인
-    features, labels, idx_train, idx_val, idx_test, nclass = load_raw_ts(args.data_path, dataset=args.dataset)
-
+if model_type == "tapnet":
     # todo : rp_params 처음 값 음수면 별도 처리하는 듯?
     # update random permutation parameter
     if args.rp_params[0] < 0:
@@ -142,9 +146,33 @@ if model_type == "TapNet":
         features, labels, idx_train = features.cuda(), labels.cuda(), idx_train.cuda()
     input = (features, labels, idx_train, idx_val, idx_test)
 
-# init the optimizer
-optimizer = optim.Adam(model.parameters(),
-                       lr=args.lr, weight_decay=args.wd)
+    # init the optimizer
+    optimizer = optim.Adam(model.parameters(),
+                           lr=args.lr, weight_decay=args.wd)
+
+elif model_type == 'alstm_fcn':
+    from baselines.models.alstm_fcn import ALSTM_FCN
+    from keras.optimizers import SGD
+    model = ALSTM_FCN(n_channels=features.shape[1], n_timesteps=features.shape[2], n_classes=nclass)
+    sgd = SGD(lr=args.lr, decay=args.wd)
+
+    model.compile(optimizer=sgd, loss="mse", metrics=["mae", "acc"])
+
+elif model_type == 'lstm_fcn':
+    from baselines.models.lstm_fcn import LSTM_FCN
+    model = LSTM_FCN(n_channels=features.shape[1], n_timesteps=features.shape[2], n_classes=nclass)
+
+
+elif model_type == 'malstm_fcn':
+    from baselines.models.malstm_fcn import MALSTM_FCN
+    model = MALSTM_FCN(n_channels=features.shape[1], n_timesteps=features.shape[2], n_classes=nclass)
+
+elif model_type == 'mlstm_fcn':
+    from baselines.models.mlstm_fcn import MLSTM_FCN
+    model = MLSTM_FCN(n_channels=features.shape[1], n_timesteps=features.shape[2], n_classes=nclass)
+
+else:
+    raise Exception("Unknown model type")
 
 
 # training function
