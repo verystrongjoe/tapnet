@@ -2,10 +2,11 @@ import tensorflow as tf
 from keras.models import Model
 from keras.layers import Input, Dense, LSTM, multiply, concatenate, Activation, Masking, Reshape
 from keras.layers import Conv1D, BatchNormalization, GlobalAveragePooling1D, Permute, Dropout
-
 from utils.keras_utils import train_model, evaluate_model, set_trainable
 from utils.layer_utils import AttentionLSTM
 from tensorflow.keras import Model
+import numpy as np
+
 
 class SQUEEZE_EXCITE_BLOCK(Model):
     def __init__(self, n_channels):
@@ -17,14 +18,22 @@ class SQUEEZE_EXCITE_BLOCK(Model):
 
     def call(self, input, training=False):
         # todo : check input keras shape == (n_batch, n_timesteps , n_channels)
-        assert self.input._keras_shape[-1] == self.filters
-
+        # assert input._keras_shape[-1] == self.filters
         x = self.gap(input)
         x = Reshape((1, self.filters))(x)
         x = self.dense1(x)
         x = self.dense2(x)
-        x = multiply([input,x])
+        x = multiply([input, x])
         return x
+
+
+# inputs = Input(shape=(3, 3))
+# gap = GlobalAveragePooling1D()
+# x = gap(inputs)
+#
+# m = SQUEEZE_EXCITE_BLOCK(3)
+# m.compile(optimizer='adam', loss='mean_squared_error', metrics='accuracy')
+# m.predict(np.ones((3, 3, 3)))
 
 class MLSTM_FCN(tf.keras.model):
 
@@ -53,13 +62,14 @@ class MLSTM_FCN(tf.keras.model):
 
         x = Masking()(inputs)
         x = self.lstm(x)
-        # todo : check whether or not dropout is available only when training step 
+
+        # todo : check whether or not dropout is available only when training step
         x = Dropout(0.8)(x)
         y = Permute((2,1))(inputs)
         y = self.conv1d_1(y)
         y = self.bn(y)
         y = self.relu(y)
-        y = self.seb1(y)
+        y = self.seb1(y)  # (batch, channels, time_steps)
 
         y = self.conv1d_2()(y)
         y = self.bn(y)

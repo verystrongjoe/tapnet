@@ -89,7 +89,6 @@ class TapNet(nn.Module):
                 )
                 self.att_models.append(att_model)
 
-        
     def forward(self, input):
         x, labels, idx_train, idx_val, idx_test = input  # x is N * L, where L is the time-series feature dimension
 
@@ -163,7 +162,7 @@ class TapNet(nn.Module):
                 A = torch.transpose(A, 1, 0)  # 1 * N_k
                 A = F.softmax(A, dim=1)  # softmax over N_k
 
-                class_repr = torch.mm(A, x[idx_train][idx]) # 1 * L
+                class_repr = torch.mm(A, x[idx_train][idx])  # 1 * L
                 class_repr = torch.transpose(class_repr, 1, 0)  # L * 1
             else:  # if do not use attention, simply use the mean of training samples with the same labels.
                 class_repr = x[idx_train][idx].mean(0)  # L * 1
@@ -180,5 +179,4 @@ class TapNet(nn.Module):
 
         dump_embedding(x_proto, x, labels)
         return torch.exp(-0.5*dists), proto_dist
-
 

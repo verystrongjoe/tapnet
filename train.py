@@ -103,6 +103,12 @@ len_ts = features.shape[2]
 layers = args.layers
 nclass = nclass
 
+# cuda
+if args.cuda:
+    # model = nn.DataParallel(model) Used when you have more than one GPU. Sometimes work but not stable
+    features, labels, idx_train = features.cuda(), labels.cuda(), idx_train.cuda()
+input = (features, labels, idx_train, idx_val, idx_test)
+
 
 if model_type == "tapnet":
     # todo : rp_params 처음 값 음수면 별도 처리하는 듯?
@@ -138,17 +144,6 @@ if model_type == "tapnet":
                    rp_params=args.rp_params,
                    lstm_dim=args.lstm_dim
                    )
-   
-    # cuda
-    if args.cuda:
-        #model = nn.DataParallel(model) Used when you have more than one GPU. Sometimes work but not stable
-        model.cuda()
-        features, labels, idx_train = features.cuda(), labels.cuda(), idx_train.cuda()
-    input = (features, labels, idx_train, idx_val, idx_test)
-
-    # init the optimizer
-    optimizer = optim.Adam(model.parameters(),
-                           lr=args.lr, weight_decay=args.wd)
 
 elif model_type == 'alstm_fcn':
     from baselines.models.alstm_fcn import ALSTM_FCN
@@ -157,22 +152,43 @@ elif model_type == 'alstm_fcn':
     sgd = SGD(lr=args.lr, decay=args.wd)
 
     model.compile(optimizer=sgd, loss="mse", metrics=["mae", "acc"])
-
+    # init the optimizer
+    optimizer = optim.Adam(model.parameters(),
+                           lr=args.lr, weight_decay=args.wd)
 elif model_type == 'lstm_fcn':
-    from baselines.models.lstm_fcn import LSTM_FCN
-    model = LSTM_FCN(n_channels=features.shape[1], n_timesteps=features.shape[2], n_classes=nclass)
+    # from baselines.models.lstm_fcn import LSTM_FCN
+    from baselines.models.lstm_fcn_pytorch import FCN_model
 
+    #NumClassesOut, N_time, N_Features
+    model = FCN_model(N_Features=features.shape[1], N_time=features.shape[2], NumClassesOut=nclass)
+    # init the optimizer
+    optimizer = optim.Adam(model.parameters(),
+                           lr=args.lr, weight_decay=args.wd)
 
 elif model_type == 'malstm_fcn':
-    from baselines.models.malstm_fcn import MALSTM_FCN
-    model = MALSTM_FCN(n_channels=features.shape[1], n_timesteps=features.shape[2], n_classes=nclass)
 
+    # from baselines.models.malstm_fcn import MALSTM_FCN
+    from baselines.models.mlstm_fcn_pytorch import LSTMFCN
+    model = LSTMFCN(n_channels=features.shape[1], n_timesteps=features.shape[2], n_classes=nclass)
+    # init the optimizer
+    optimizer = optim.Adam(model.parameters(),
+                           lr=args.lr, weight_decay=args.wd)
 elif model_type == 'mlstm_fcn':
     from baselines.models.mlstm_fcn import MLSTM_FCN
     model = MLSTM_FCN(n_channels=features.shape[1], n_timesteps=features.shape[2], n_classes=nclass)
-
+    # init the optimizer
+    optimizer = optim.Adam(model.parameters(),
+                           lr=args.lr, weight_decay=args.wd)
 else:
     raise Exception("Unknown model type")
+
+# cuda
+if args.cuda:
+    model.cuda()
+
+# init the optimizer
+optimizer = optim.Adam(model.parameters(),
+                       lr=args.lr, weight_decay=args.wd)
 
 
 # training function
