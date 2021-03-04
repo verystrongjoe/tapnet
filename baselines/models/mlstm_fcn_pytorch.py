@@ -95,8 +95,6 @@ class LSTMFCN(nn.Module):
         self.n_classes = n_classes
 
     def forward(self, x):
-        x, labels, idx_train, idx_val, idx_test = x  # x is N * L, where L is the time-series feature dimension
-
         # pass input through LSTM block
         x1 = self.lstm_block(x)
         x1 = torch.squeeze(x1)

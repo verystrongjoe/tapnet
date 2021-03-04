@@ -7,7 +7,6 @@ from utils.layer_utils import AttentionLSTM
 from tensorflow.keras import Model
 import numpy as np
 
-
 class SQUEEZE_EXCITE_BLOCK(Model):
     def __init__(self, n_channels):
         super(SQUEEZE_EXCITE_BLOCK, self).__init__()
@@ -26,15 +25,6 @@ class SQUEEZE_EXCITE_BLOCK(Model):
         x = multiply([input, x])
         return x
 
-
-# inputs = Input(shape=(3, 3))
-# gap = GlobalAveragePooling1D()
-# x = gap(inputs)
-#
-# m = SQUEEZE_EXCITE_BLOCK(3)
-# m.compile(optimizer='adam', loss='mean_squared_error', metrics='accuracy')
-# m.predict(np.ones((3, 3, 3)))
-
 class MLSTM_FCN(tf.keras.model):
 
     def __init__(self, n_channels, n_timesteps, n_classes):
@@ -51,14 +41,14 @@ class MLSTM_FCN(tf.keras.model):
         self.conv1d_3 = Conv1D(128, 3, padding='same', kernel_initializer='he_uniform')
         self.bn = BatchNormalization()
         self.relu = Activation('relu')
-        self.seb1 = SQUEEZE_EXCITE_BLOCK(n_channels=self.n_channels)
-        self.seb2 = SQUEEZE_EXCITE_BLOCK(n_channels=self.n_channels)
+        self.seb1 = SQUEEZE_EXCITE_BLOCK(n_channels=128)
+        self.seb2 = SQUEEZE_EXCITE_BLOCK(n_channels=256)
         self.dense = Dense(self.n_classes)
 
     def call(self, inputs, training=False):
 
         # todo : check keras tensor shape (batch, timesteps, channels)
-        assert inputs._keras_shape[1:] ==  (self.n_timesteps, self.n_channels)
+        assert inputs._keras_shape[1:] == (self.n_timesteps, self.n_channels)
 
         x = Masking()(inputs)
         x = self.lstm(x)

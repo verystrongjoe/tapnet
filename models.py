@@ -20,7 +20,6 @@ class TapNet(nn.Module):
         self.rp_group, self.rp_dim = rp_params
 
         if True:
-            # LSTM
             self.channel = nfeat
             self.ts_length = len_ts
 

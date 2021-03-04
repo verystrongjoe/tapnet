@@ -29,6 +29,7 @@ class SQUEEZE_EXCITE_BLOCK(nn.Module):
 
 
 class FCN_model(nn.Module):
+
     def __init__(self, n_timesteps, n_classes, batch_size, n_channels, n_lstm_out=128, n_lstm_layers=1,
                  Conv1_NF=128, Conv2_NF=256, Conv3_NF=128, lstmDropP=0.8, FC_DropP=0.3, SEB=True):
 
