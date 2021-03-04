@@ -142,7 +142,7 @@ def train():
                   'time: {:.4f}s'.format(time.time() - t))
 
             wandb.log({
-                "Epoch": epoch + 1,
+                # "Epoch": epoch + 1,
                 "loss_train": loss_train.item(),
                 "acc_train": acc_train.item(),
                 "loss_val": loss_val.item(),
